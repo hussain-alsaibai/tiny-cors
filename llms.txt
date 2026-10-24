@@ -1,0 +1,49 @@
+# tiny-cors
+
+RFC-compliant CORS middleware for WSGI and ASGI. Zero dependencies. Single file.
+
+## Run
+
+```bash
+pip install tiny-cors
+```
+
+## API
+
+- `CorsConfig(...)` — dataclass. Fields: `allow_origins` (frozenset),
+  `deny_origins` (frozenset), `allow_methods` (frozenset),
+  `allow_headers` (frozenset), `expose_headers` (frozenset), `max_age`
+  (int), `allow_credentials` (bool), `vary_origin` (bool),
+  `allow_origin_func` (optional callable).
+  - `is_origin_allowed(origin)` / `get_allowed_origin(origin)`
+- `cors_middleware(config, app=None)` — WSGI middleware factory.
+- `CorsMiddleware(app, config)` — WSGI class form.
+- `ASGICorsMiddleware(app, config)` — ASGI class form.
+- `PreflightCache(max_age=..., max_entries=...)` — caches preflight
+  responses so repeated OPTIONS requests do not hit the app.
+- `tiny_router_middleware(config)` — adapter for
+  https://github.com/hussain-alsaibai/tiny-router apps.
+
+## Usage
+
+```python
+from tiny_cors import CorsConfig, cors_middleware
+
+config = CorsConfig(allow_origins=frozenset({"https://app.example.com"}))
+app = cors_middleware(config, my_wsgi_app)
+```
+
+## Notes
+
+- Handles preflight (OPTIONS) separately from the actual request.
+- `Vary: Origin` is emitted whenever the response depends on the origin
+  (`vary_origin=True` by default).
+- With a wildcard origin and `allow_credentials=False` the response sends
+  `Access-Control-Allow-Origin: *`; with credentials on, the concrete
+  origin is echoed instead, per the Fetch spec.
+- `allow_origin_func` accepts a callable for dynamic origin decisions.
+
+## Links
+
+- Source: https://github.com/hussain-alsaibai/tiny-cors
+- Part of the OpenClaw zero-dependency tiny-* ecosystem.
